@@ -107,6 +107,43 @@ class TestCourseOutlinePage(SharedModuleStoreTestCase):
                         self.assertNotIn(vertical.display_name, response_content)
 
 
+class TestCourseOutlinePageWithPrerequisites(SharedModuleStoreTestCase):
+    """
+    Test the course outline view with prerequisites.
+    """
+
+    def test_course_with_locked_content(cls):
+        """
+        Test that a sequntial/subsection with unmet prereqs correctly indicated that its content is locked
+        """
+        course = self.course
+
+        response = self.client.get(course_home_url(course))
+        self.assertEqual(response.status_code, 200)
+
+        #TODO: The subsection is present
+        #TODO: the lock icon is there
+        #TODO: the subtitle saying what the prereq is is there
+
+
+    #TODO: Tests to write:
+    #TODO:     unlocked content
+    #TODO:         subseciton is present
+    #TODO:         unlock is there
+    #TODO:         success! message
+    #TODO:     locked subsection with special exam
+    #TODO:         subsection is present
+    #TODO:         lock is present
+    #TODO:         special exam message is NOT present
+    #TODO:         prerequisite: is message is present
+    #TODO:     unlocked subsection with special exam
+    #TODO:         subsection is present
+    #TODO:         unlock is present
+    #TODO:         special exam message is present
+    #TODO:         success is message is present
+
+
+
 class TestCourseOutlineResumeCourse(SharedModuleStoreTestCase):
     """
     Test start course and resume course for the course outline view.
