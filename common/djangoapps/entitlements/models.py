@@ -11,7 +11,7 @@ class CourseEntitlement(TimeStampedModel):
     """
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
-    uuid = models.UUIDField(default=uuid_tools.uuid4, editable=False)
+    uuid = models.UUIDField(default=uuid_tools.uuid4, editable=False, unique=True)
     course_uuid = models.UUIDField(help_text='UUID for the Course, not the Course Run')
     expired_at = models.DateTimeField(
         null=True,
@@ -31,3 +31,11 @@ class CourseEntitlement(TimeStampedModel):
         Getter to be used instead of expired_at because of the conditional check and update
         """
         return self.expired_at
+
+    @classmethod
+    def set_enrollment(cls, entitlement, enrollment):
+        """
+        Fulfills an entitlement by specifying a session.
+        """
+        cls.objects.filter(id=entitlement.id).update(enrollment_course_run=enrollment)
+

@@ -4,9 +4,12 @@ import uuid
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
+from mock import patch
+from opaque_keys.edx.locator import CourseKey
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory
 
+from student.models import CourseEnrollment
 from student.tests.factories import CourseEnrollmentFactory, UserFactory, TEST_PASSWORD
 
 # Entitlements is not in CMS' INSTALLED_APPS so these imports will error during test collection
@@ -195,3 +198,171 @@ class EntitlementViewSetTest(ModuleStoreTestCase):
         course_entitlement.refresh_from_db()
         assert course_entitlement.expired_at is not None
         assert course_entitlement.enrollment_course_run is None
+
+
+@unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
+class EntitlementEnrollmentViewSetTest(ModuleStoreTestCase):
+    ENTITLEMENTS_ENROLLMENT_NAMESPACE = 'entitlements_api:v1:enrollments'
+
+    def setUp(self):
+        super(EntitlementEnrollmentViewSetTest, self).setUp()
+        self.user = UserFactory()
+        self.client.login(username=self.user.username, password=TEST_PASSWORD)
+        self.course = CourseFactory.create(org='edX', number='DemoX', display_name='Demo_Course')
+        self.course2 = CourseFactory.create(org='edX', number='DemoX2', display_name='Demo_Course 2')
+        self.patcher = patch("openedx.core.djangoapps.catalog.utils.get_course_runs_for_course")
+        self.mock_get_course_runs = self.patcher.start()
+        self.mock_get_course_runs.return_value = [
+            {'key': str(self.course.id)},
+            {'key': str(self.course2.id)}
+        ]
+
+    def tearDown(self):
+        self.patcher.stop()
+
+    def test_user_can_enroll(self):
+        course_entitlement = CourseEntitlementFactory(
+            user=self.user
+        )
+        url = reverse(
+            self.ENTITLEMENTS_ENROLLMENT_NAMESPACE,
+            args=[str(course_entitlement.uuid)]
+        )
+        assert course_entitlement.enrollment_course_run is None
+
+        data = {
+            'course_run_id': str(self.course.id)
+        }
+        response = self.client.post(
+            url,
+            data=json.dumps(data),
+            content_type='application/json',
+        )
+        course_entitlement.refresh_from_db()
+
+        assert response.status_code == 201
+        assert CourseEnrollment.is_enrolled(self.user, self.course.id)
+        assert course_entitlement.enrollment_course_run is not None
+
+    def test_user_can_unenroll(self):
+            course_entitlement = CourseEntitlementFactory(
+                user=self.user
+            )
+            url = reverse(
+                self.ENTITLEMENTS_ENROLLMENT_NAMESPACE,
+                args=[str(course_entitlement.uuid)]
+            )
+            assert course_entitlement.enrollment_course_run is None
+
+            data = {
+                'course_run_id': str(self.course.id)
+            }
+            response = self.client.post(
+                url,
+                data=json.dumps(data),
+                content_type='application/json',
+            )
+            course_entitlement.refresh_from_db()
+
+            assert response.status_code == 201
+            assert CourseEnrollment.is_enrolled(self.user, self.course.id)
+
+            response = self.client.delete(
+                url,
+                content_type='application/json',
+            )
+            assert response.status_code == 204
+
+            course_entitlement.refresh_from_db()
+            assert not CourseEnrollment.is_enrolled(self.user, self.course.id)
+            assert course_entitlement.enrollment_course_run is None
+
+    def test_user_can_switch(self):
+
+        course_entitlement = CourseEntitlementFactory(
+            user=self.user
+        )
+        url = reverse(
+            self.ENTITLEMENTS_ENROLLMENT_NAMESPACE,
+            args=[str(course_entitlement.uuid)]
+        )
+        assert course_entitlement.enrollment_course_run is None
+
+        data = {
+            'course_run_id': str(self.course.id)
+        }
+        response = self.client.post(
+            url,
+            data=json.dumps(data),
+            content_type='application/json',
+        )
+        course_entitlement.refresh_from_db()
+
+        assert response.status_code == 201
+        assert CourseEnrollment.is_enrolled(self.user, self.course.id)
+
+        data = {
+            'course_run_id': str(self.course2.id)
+        }
+        response = self.client.post(
+            url,
+            data=json.dumps(data),
+            content_type='application/json',
+        )
+        assert response.status_code == 201
+
+        course_entitlement.refresh_from_db()
+        assert CourseEnrollment.is_enrolled(self.user, self.course2.id)
+        assert course_entitlement.enrollment_course_run is not None
+
+    def test_user_already_enrolled(self):
+
+        course_entitlement = CourseEntitlementFactory(
+            user=self.user
+        )
+        url = reverse(
+            self.ENTITLEMENTS_ENROLLMENT_NAMESPACE,
+            args=[str(course_entitlement.uuid)]
+        )
+
+        CourseEnrollment.enroll(self.user, self.course.id, mode=course_entitlement.mode)
+        data = {
+            'course_run_id': str(self.course.id)
+        }
+        response = self.client.post(
+            url,
+            data=json.dumps(data),
+            content_type='application/json',
+        )
+        course_entitlement.refresh_from_db()
+
+        assert response.status_code == 201
+        assert CourseEnrollment.is_enrolled(self.user, self.course.id)
+
+        course_entitlement.refresh_from_db()
+        assert CourseEnrollment.is_enrolled(self.user, self.course.id)
+        assert course_entitlement.enrollment_course_run is not None
+
+    def test_user_cannot_enroll_in_unknown_course_run_id(self):
+        fake_course_str = str(self.course.id) + 'fake'
+        fake_course_key = CourseKey.from_string(fake_course_str)
+        course_entitlement = CourseEntitlementFactory(
+            user=self.user
+        )
+        url = reverse(
+            self.ENTITLEMENTS_ENROLLMENT_NAMESPACE,
+            args=[str(course_entitlement.uuid)]
+        )
+
+        data = {
+            'course_run_id': str(fake_course_key)
+        }
+        response = self.client.post(
+            url,
+            data=json.dumps(data),
+            content_type='application/json',
+        )
+
+        assert response.status_code == 400
+        assert response.data['message'] == 'The Course Run ID is not a match for this Course Entitlement.'
+        assert not CourseEnrollment.is_enrolled(self.user, fake_course_key)
