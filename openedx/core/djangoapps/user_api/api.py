@@ -864,6 +864,38 @@ class RegistrationFormFactory(object):
                                     instructions="",
                                 )
 
+                    display_field_names = ['terms_of_service', 'honor_code', 'email', 'name']
+
+                    # Make input fields read-only for fields passed in via SSO callback data.
+                    if current_provider.sync_learner_profile_data:
+                        for field_name in self.DEFAULT_FIELDS + self.EXTRA_FIELDS:
+                            if field_name in display_field_names:
+                                if field_name not in ['terms_of_service', 'honor_code'] and \
+                                        field_name in field_overrides and field_overrides[field_name]:
+                                    form_desc.override_field_properties(
+                                        field_name,
+                                        default=field_overrides[field_name],
+                                        restrictions={"readonly": True},
+                                        instructions=""
+                                    )
+                            elif field_name in field_overrides:
+                                form_desc.override_field_properties(
+                                    field_name,
+                                    default=field_overrides[field_name],
+                                    field_type="hidden",
+                                    required=False,
+                                    label="",
+                                    instructions="",
+                                )
+                            else:
+                                form_desc.override_field_properties(
+                                    field_name,
+                                    field_type="hidden",
+                                    required=False,
+                                    label="",
+                                    instructions="",
+                                )
+
                     # Hide the password field
                     form_desc.override_field_properties(
                         "password",
