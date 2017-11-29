@@ -7,6 +7,8 @@ var webpack = require('webpack');
 var BundleTracker = require('webpack-bundle-tracker');
 var StringReplace = require('string-replace-webpack-plugin');
 
+var entryPoints = require('./entryPoints.js');
+
 var namespacedRequireFiles = [
     path.resolve(__dirname, 'common/static/common/js/components/views/feedback_notification.js'),
     path.resolve(__dirname, 'common/static/common/js/components/views/feedback.js')
