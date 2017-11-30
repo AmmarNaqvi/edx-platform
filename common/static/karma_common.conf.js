@@ -19,6 +19,7 @@ var options = {
         {pattern: 'coffee/src/ajax_prefix.js', included: true},
         {pattern: 'js/vendor/draggabilly.js', included: true},
         {pattern: 'common/js/vendor/jquery.js', included: true},
+        {pattern: 'js/vendor/jquery.simulate.js', included: true},
         {pattern: 'common/js/vendor/jquery-migrate.js', included: true},
         {pattern: 'coffee/src/jquery.immediateDescendents.js', included: true},
         {pattern: 'js/vendor/jquery.leanModal.js', included: true},

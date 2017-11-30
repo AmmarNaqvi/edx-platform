@@ -1,4 +1,6 @@
-/* globals DiscussionSpecHelper, DiscussionUtil */
+/*  globals DiscussionSpecHelper, DiscussionCourseSettings, NewPostView, DiscussionUtil,
+    DiscussionThreadView, DiscussionViewSpecHelper, Thread, Discussion,
+*/
 (function() {
     'use strict';
     describe('DiscussionUtil', function() {
@@ -87,6 +89,85 @@
                 });
                 expect($elem.prop).toHaveBeenCalledWith('disabled', true);
                 expect(beforeSendSpy).toHaveBeenCalled();
+            });
+        });
+
+        describe('handleKeypressInToolbar', function() {
+            function focused(element) {
+                return $(element)[0] === $(element)[0].ownerDocument.activeElement;
+            }
+
+            beforeEach(function () {
+                DiscussionSpecHelper.setUpGlobals();
+                DiscussionSpecHelper.setUnderscoreFixtures();
+                this.thread = new Thread({
+                    id: 'dummy_id',
+                    thread_type: 'discussion',
+                    pinned: false,
+                    endorsed: false,
+                    votes: {
+                        up_count: '0'
+                    },
+                    read: false,
+                    unread_comments_count: 0,
+                    comments_count: 0,
+                    abuse_flaggers: [],
+                    body: '',
+                    title: 'dummy title',
+                    created_at: '2014-08-18T01:02:03Z',
+                    ability: {
+                        can_delete: false,
+                        can_reply: true,
+                        can_vote: false,
+                        editable: false
+                    }
+                });
+                this.discussion = new Discussion(this.thread);
+                this.view = new DiscussionThreadView({
+                    model: this.thread,
+                    el: $('#fixture-element'),
+                    course_settings: DiscussionSpecHelper.createTestCourseSettings()
+                });
+                this.view.render();
+
+                this.firstButton = this.view.$('.wmd-button-row:first-child');
+                this.subsequentButtons = this.view.$('.wmd-button-first-row button');
+            });
+
+            it('can only focus on first button in toolbar', function () {
+                this.firstButton.focus();
+
+                expect(this.firstButton).toHaveAttr({
+                    'tabindex': '0'
+                });
+
+                this.subsequentButtons.each(function (button) {
+                    expect(button).toHaveAttr({
+                        'tabindex': '-1'
+                    });
+                });
+            });
+
+            it('navigates the toolbar by pressing left/right arrow keys', function () {
+                var nextButton;
+
+                this.firstButton.focus();
+                this.firstButton.simulate('keydown', {keyCode: $.simulate.keyCode.RIGHT});
+
+                nextButton = this.firstButton.next();
+
+                expect(nextButton).toHaveAttr({
+                    'tabindex': '0'
+                });
+                expect(focused(nextButton), true);
+            });
+
+            it('moves focus to next element when pressing tab', function () {
+                var nextFocusableElement = this.firstButton.parent().next();
+                this.firstButton.focus();
+                this.firstButton.simulate('tab', {keyCode: $.simulate.keyCode.TAB});
+
+                expect(focused(nextFocusableElement), true);
             });
         });
     });

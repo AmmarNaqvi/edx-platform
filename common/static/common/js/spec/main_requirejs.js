@@ -167,8 +167,8 @@
         'common/js/spec/components/paging_footer_spec.js',
         'common/js/spec/components/progress_circle_view_spec.js',
         'common/js/spec/components/search_field_spec.js',
-        'common/js/spec/components/view_utils_spec.js',
-        'common/js/spec/utils/edx.utils.validate_spec.js'
+        'common/js/spec/utils/edx.utils.validate_spec.js',
+        'common/js/spec/utils/utils_spec.js'
     ];
 
     for (i = 0; i < testFiles.length; i++) {
@@ -178,7 +178,8 @@
     specHelpers = [
         'common/js/spec_helpers/jasmine-extensions',
         'common/js/spec_helpers/jasmine-stealth',
-        'common/js/spec_helpers/jasmine-waituntil'
+        'common/js/spec_helpers/jasmine-waituntil',
+        'common/js/spec_helpers/discussion_spec_helper'
     ];
 
     // Jasmine has a global stack for creating a tree of specs. We need to load
