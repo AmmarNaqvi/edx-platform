@@ -1,6 +1,7 @@
 <%page expression_filter="h"/>
 <%!
 import logging
+import json
 from django.contrib.staticfiles.storage import staticfiles_storage
 from pipeline_mako import compressed_css, compressed_js
 from django.utils.translation import get_language_bidi
@@ -141,7 +142,7 @@ source, template_path = Loader(engine).load_template_source(path)
     %>
 </%def>
 
-<%def name="renderReact(component, props=None)">
+<%def name="renderReact(component, props={})">
     <%doc>
         Wrapper function to load a React component via webpack() and render
         it onto the page, passing an optional context object via props.
@@ -150,28 +151,25 @@ source, template_path = Loader(engine).load_template_source(path)
         import uuid
         from django.template import Template, Context
         from webpack_loader.exceptions import WebpackLoaderBadStatsError
-        id = 'react-container-{0}'.format(uuid.uuid4())
-        return Template("""
-            {% load render_bundle from webpack_loader %}
-            {% render_bundle entry %}
-            {% render_bundle 'ReactRenderer' %}
+        from webpack_loader.templatetags.webpack_loader import render_bundle
 
-              <div id="{{id}}"></div>
-              <script type="text/javascript">
-                  var entry;
-                  try { entry = {{entry}}; } catch (e) { entry = null; }
-                  new ReactRenderer({
-                    component: entry,
-                    selector: '#{{id}}',
-                    componentName: '{{entry}}',
-                    props: {}
-                  });
-              </script>
-        """).render(Context({
-            'entry': component,
-            'id': id
-        }))
+        id = 'react-container-{0}'.format(uuid.uuid4())
     %>
+
+    ${render_bundle(component) | n}
+    ${render_bundle('ReactRenderer') | n}
+
+    <div id="${id}"></div>
+      <script type="text/javascript">
+          var c;
+          try { c = ${component}; } catch (e) { c = null; }
+          new ReactRenderer({
+            component: c,
+            selector: '#${id}',
+            componentName: '${component}',
+            props: ${json.dumps(props) | n}
+          });
+      </script>
 </%def>
 
 <%def name="require_module(module_name, class_name)">

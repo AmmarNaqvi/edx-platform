@@ -13,27 +13,36 @@ class ReactRendererException extends Error {
 }
 
 export class ReactRenderer {
-  constructor({component, selector, componentName, props={}}) {
+  constructor({component, selector, componentName, props}) {
     Object.assign(this, {
       component,
       selector,
       componentName,
       props,
     });
-    this.handleModuleErrors();
+    this.handleArgumentErrors();
     this.targetElement = this.getTargetElement(selector);
     this.renderComponent();
-
   }
 
-  handleModuleErrors() {
+  handleArgumentErrors() {
     if (this.component === null) {
       throw new ReactRendererException(
-        `Component ${this.componentName} is not defined. Make sure you're
-        using a non-default export statement for the ${this.componentName}
-        class, that ${this.componentName} has an entry point defined
-        within the 'entry' section of webpack.common.config.js, and that the
-        entry point is pointing at the correct file path.`
+        `Component ${this.componentName} is not defined. Make sure you're ` +
+        `using a non-default export statement for the ${this.componentName} ` +
+        `class, that ${this.componentName} has an entry point defined ` +
+        `within the 'entry' section of webpack.common.config.js, and that the ` +
+        `entry point is pointing at the correct file path.`
+      );
+    }
+    if (this.props && !((!!this.props) && (this.props.constructor === Object))) {
+      let propsType = typeof this.props;
+      if (Array.isArray(this.props)) {
+        propsType = 'array';
+      }
+      throw new ReactRendererException(
+        `Invalid props passed to component ${this.componentName}. Expected ` +
+        `an object, but received a ${propsType}.`
       );
     }
   }
@@ -42,8 +51,8 @@ export class ReactRenderer {
     const elementList = document.querySelectorAll(selector);
     if (elementList.length !== 1) {
       throw new ReactRendererException(
-        `Expected 1 element match for selector "${selector}" but
-        received ${elementList.length} matches.`
+        `Expected 1 element match for selector "${selector}" but ` +
+        `received ${elementList.length} matches.`
       );
     } else {
       return elementList[0];
