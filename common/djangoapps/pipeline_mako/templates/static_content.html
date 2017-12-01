@@ -19,6 +19,7 @@ from openedx.core.djangoapps.theming.helpers import (
   is_request_in_themed_site,
 )
 from certificates.api import get_asset_url_by_slug
+from webpack_loader.templatetags.webpack_loader import render_bundle
 logger = logging.getLogger(__name__)
 %>
 
@@ -98,9 +99,6 @@ source, template_path = Loader(engine).load_template_source(path)
             -include it as the first script in this block
     </%doc>
     <%
-        from webpack_loader.exceptions import WebpackLoaderBadStatsError
-        from webpack_loader.templatetags.webpack_loader import render_bundle
-
         body = capture(caller.body)
         body_dict = json.loads(body)
         body_dict['lang'] = lang
@@ -118,8 +116,6 @@ source, template_path = Loader(engine).load_template_source(path)
         Uses the Django template engine because our webpack loader only provides template tags for Jinja and Django.
     </%doc>
     <%
-        from webpack_loader.exceptions import WebpackLoaderBadStatsError
-        from webpack_loader.templatetags.webpack_loader import render_bundle
         body = capture(caller.body)
     %>
     ${render_bundle(entry) | n}
@@ -137,9 +133,6 @@ source, template_path = Loader(engine).load_template_source(path)
     </%doc>
     <%
         import uuid
-        from webpack_loader.exceptions import WebpackLoaderBadStatsError
-        from webpack_loader.templatetags.webpack_loader import render_bundle
-
         id = 'react-container-{0}'.format(uuid.uuid4())
     %>
 
