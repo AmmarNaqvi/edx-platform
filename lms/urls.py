@@ -72,7 +72,7 @@ urlpatterns = [
     # Static template view endpoints like blog, faq, etc.
     url(r'', include('static_template_view.urls')),
 
-    url(r'^heartbeat$', include('openedx.core.djangoapps.heartbeat.urls')),
+    url(r'^heartbeat', include('openedx.core.djangoapps.heartbeat.urls')),
 
     # Note: these are older versions of the User API that will eventually be
     # subsumed by api/user listed below.
