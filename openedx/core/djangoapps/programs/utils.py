@@ -677,15 +677,15 @@ class ProgramMarketingDataExtender(ProgramDataExtender):
             for instructor in self.data['instructors']
         ]
         instructors_to_be_sorted = [
-            instructor for instructor in program_instructors 
+            instructor for instructor in program_instructors
             if instructor['name'] in sorted_instructor_names
         ]
         instructors_to_not_be_sorted = [
-            instructor for instructor in program_instructors 
+            instructor for instructor in program_instructors
             if instructor['name'] not in sorted_instructor_names
         ]
         sorted_instructors = sorted(
-            instructors_to_be_sorted, 
+            instructors_to_be_sorted,
             key=lambda item: sorted_instructor_names.index(item['name'])
         )
         self.data['instructors'] = sorted_instructors + instructors_to_not_be_sorted
