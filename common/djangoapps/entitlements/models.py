@@ -38,4 +38,3 @@ class CourseEntitlement(TimeStampedModel):
         Fulfills an entitlement by specifying a session.
         """
         cls.objects.filter(id=entitlement.id).update(enrollment_course_run=enrollment)
-

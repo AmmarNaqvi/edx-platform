@@ -3,6 +3,7 @@ import logging
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from edx_rest_framework_extensions.authentication import JwtAuthentication
+from opaque_keys import InvalidKeyError
 from opaque_keys.edx.keys import CourseKey
 from rest_framework import permissions, viewsets, status
 from rest_framework.authentication import SessionAuthentication
@@ -172,7 +173,7 @@ class EntitlementEnrollmentViewSet(viewsets.GenericViewSet):
         # Determine if this is a Switch session or a simple enroll and handle both.
         try:
             course_run_string = CourseKey.from_string(course_run_id)
-        except CourseKey.InvalidKeyError:
+        except InvalidKeyError:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
                 data={

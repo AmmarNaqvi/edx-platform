@@ -178,7 +178,7 @@ class EntitlementViewSetTest(ModuleStoreTestCase):
         assert course_entitlement.expired_at is not None
 
     def test_revoke_unenroll_entitlement(self):
-        course_entitlement = CourseEntitlementFactory()
+        course_entitlement = CourseEntitlementFactory.create()
         url = reverse(self.ENTITLEMENTS_DETAILS_PATH, args=[str(course_entitlement.uuid)])
 
         enrollment = CourseEnrollmentFactory.create(user=self.user, course_id=self.course.id)
@@ -219,6 +219,7 @@ class EntitlementEnrollmentViewSetTest(ModuleStoreTestCase):
 
     def tearDown(self):
         self.patcher.stop()
+        super(EntitlementEnrollmentViewSetTest, self).tearDown()
 
     def test_user_can_enroll(self):
         course_entitlement = CourseEntitlementFactory(
@@ -238,50 +239,47 @@ class EntitlementEnrollmentViewSetTest(ModuleStoreTestCase):
             data=json.dumps(data),
             content_type='application/json',
         )
-        course_entitlement.refresh_from_db()
+        course_entitlement.refresh_from_db()  # pylint: disable=no-member
 
         assert response.status_code == 201
         assert CourseEnrollment.is_enrolled(self.user, self.course.id)
         assert course_entitlement.enrollment_course_run is not None
 
     def test_user_can_unenroll(self):
-            course_entitlement = CourseEntitlementFactory(
-                user=self.user
-            )
-            url = reverse(
-                self.ENTITLEMENTS_ENROLLMENT_NAMESPACE,
-                args=[str(course_entitlement.uuid)]
-            )
-            assert course_entitlement.enrollment_course_run is None
+        course_entitlement = CourseEntitlementFactory.create(user=self.user)
+        url = reverse(
+            self.ENTITLEMENTS_ENROLLMENT_NAMESPACE,
+            args=[str(course_entitlement.uuid)]
+        )
+        assert course_entitlement.enrollment_course_run is None
 
-            data = {
-                'course_run_id': str(self.course.id)
-            }
-            response = self.client.post(
-                url,
-                data=json.dumps(data),
-                content_type='application/json',
-            )
-            course_entitlement.refresh_from_db()
+        data = {
+            'course_run_id': str(self.course.id)
+        }
+        response = self.client.post(
+            url,
+            data=json.dumps(data),
+            content_type='application/json',
+        )
+        course_entitlement.refresh_from_db()
 
-            assert response.status_code == 201
-            assert CourseEnrollment.is_enrolled(self.user, self.course.id)
+        assert response.status_code == 201
+        assert CourseEnrollment.is_enrolled(self.user, self.course.id)
 
-            response = self.client.delete(
-                url,
-                content_type='application/json',
-            )
-            assert response.status_code == 204
+        response = self.client.delete(
+            url,
+            content_type='application/json',
+        )
+        assert response.status_code == 204
 
-            course_entitlement.refresh_from_db()
-            assert not CourseEnrollment.is_enrolled(self.user, self.course.id)
-            assert course_entitlement.enrollment_course_run is None
+        course_entitlement.refresh_from_db()
+        assert not CourseEnrollment.is_enrolled(self.user, self.course.id)
+        assert course_entitlement.enrollment_course_run is None
 
     def test_user_can_switch(self):
 
-        course_entitlement = CourseEntitlementFactory(
-            user=self.user
-        )
+        course_entitlement = CourseEntitlementFactory.create(user=self.user)
+
         url = reverse(
             self.ENTITLEMENTS_ENROLLMENT_NAMESPACE,
             args=[str(course_entitlement.uuid)]
@@ -317,9 +315,8 @@ class EntitlementEnrollmentViewSetTest(ModuleStoreTestCase):
 
     def test_user_already_enrolled(self):
 
-        course_entitlement = CourseEntitlementFactory(
-            user=self.user
-        )
+        course_entitlement = CourseEntitlementFactory.create(user=self.user)
+
         url = reverse(
             self.ENTITLEMENTS_ENROLLMENT_NAMESPACE,
             args=[str(course_entitlement.uuid)]
