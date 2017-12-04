@@ -13,7 +13,7 @@ class ReactRendererException extends Error {
 }
 
 export class ReactRenderer {
-  constructor({component, selector, componentName, props}) {
+  constructor({component, selector, componentName, props={}}) {
     Object.assign(this, {
       component,
       selector,
@@ -35,10 +35,12 @@ export class ReactRenderer {
         `entry point is pointing at the correct file path.`
       );
     }
-    if (this.props && !((!!this.props) && (this.props.constructor === Object))) {
+    if (!(this.props instanceof Object && this.props.constructor === Object)) {
       let propsType = typeof this.props;
       if (Array.isArray(this.props)) {
         propsType = 'array';
+      } else if (this.props === null) {
+        propsType = 'null';
       }
       throw new ReactRendererException(
         `Invalid props passed to component ${this.componentName}. Expected ` +
