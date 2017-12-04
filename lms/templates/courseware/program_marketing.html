@@ -357,14 +357,15 @@ endorser_org = endorser_position.get('organization_name') or corporate_endorseme
   % if faqs:
   <hr class="thick_rule">
     <div id="faqs" class="row faqs">
-      <div class="col-12">
+      <div class="col-12 col-lg-9 col-xl-7">
         <h2>${_('Frequently Asked Questions')}</h2>
+        <hr>
       </div>
       % for faq in faqs:
-        <div class="col-4 faq">
-          <div class="question">
+        <div class="col-12 col-lg-9 col-xl-7 faq">
+          <h3 class="question">
             ${faq['question']}
-          </div>
+          </h3>
           <div class="answer">
             ${HTML(faq['answer'])}
           </div>
