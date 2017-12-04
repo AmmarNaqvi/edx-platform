@@ -561,6 +561,14 @@ ${static.renderReact(
   }
 )}
 
+${static.renderReact(
+  component="HelloWorld",
+  id="hello-world",
+  props={
+    'foo': 'bar'
+  }
+)}
+
 <%static:webpack entry="StudioIndex">
     var enableReruns = ${allow_course_reruns and rerun_creator_status and course_creator_status=='granted' | n, dump_js_escaped_json};
     new StudioCourseIndex(
