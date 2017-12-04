@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
+import datetime
 
 
 class Migration(migrations.Migration):
@@ -16,9 +17,9 @@ class Migration(migrations.Migration):
             name='CourseEntitlementPolicy',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('expiration_period_days', models.IntegerField(default=450, help_text=b'Number of days from when an entitlement is created until when it is expired.')),
-                ('refund_period_days', models.IntegerField(default=60, help_text=b'Number of days from when an entitlement is created until when it is no longer refundable')),
-                ('regain_period_days', models.IntegerField(default=14, help_text=b'Number of days from when an entitlement is redeemed for a course run until it is no longer able to be regained by a user.')),
+                ('expiration_period_days', models.DurationField(default=datetime.timedelta(450), help_text=b'Number of days from when an entitlement is created until when it is expired.')),
+                ('refund_period_days', models.DurationField(default=datetime.timedelta(60), help_text=b'Number of days from when an entitlement is created until when it is no longer refundable')),
+                ('regain_period_days', models.DurationField(default=datetime.timedelta(14), help_text=b'Number of days from when an entitlement is redeemed for a course run until it is no longer able to be regained by a user.')),
                 ('site', models.ForeignKey(to='sites.Site')),
             ],
         ),

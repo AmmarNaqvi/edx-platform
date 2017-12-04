@@ -121,7 +121,7 @@ class TestModels(TestCase):
         # This will always either be 1 less than the expiration_period_days because the get_days_until_expiration
         # method will have had at least some time pass between object creation in setUp and this method execution,
         # or the exact same as the original expiration_period_days if somehow no time has passed
-        assert entitlement.get_days_until_expiration() <= entitlement.policy.expiration_period_days
+        assert entitlement.get_days_until_expiration() <= entitlement.policy.expiration_period_days.days
 
     def test_expired_at_datetime(self):
         """

@@ -20,18 +20,18 @@ class CourseEntitlementPolicy(models.Model):
     DEFAULT_REFUND_PERIOD_DAYS = 60
     DEFAULT_REGAIN_PERIOD_DAYS = 14
 
-    expiration_period_days = models.IntegerField(
-        default=DEFAULT_EXPIRATION_PERIOD_DAYS,
+    expiration_period_days = models.DurationField(
+        default=timedelta(DEFAULT_EXPIRATION_PERIOD_DAYS),
         help_text="Number of days from when an entitlement is created until when it is expired.",
         null=False
     )
-    refund_period_days = models.IntegerField(
-        default=DEFAULT_REFUND_PERIOD_DAYS,
+    refund_period_days = models.DurationField(
+        default=timedelta(DEFAULT_REFUND_PERIOD_DAYS),
         help_text="Number of days from when an entitlement is created until when it is no longer refundable",
         null=False
     )
-    regain_period_days = models.IntegerField(
-        default=DEFAULT_REGAIN_PERIOD_DAYS,
+    regain_period_days = models.DurationField(
+        default=timedelta(DEFAULT_REGAIN_PERIOD_DAYS),
         help_text=("Number of days from when an entitlement is redeemed for a course run until "
                    "it is no longer able to be regained by a user."),
         null=False
@@ -43,7 +43,7 @@ class CourseEntitlementPolicy(models.Model):
         Returns an integer of number of days until the entitlement expires. Includes if the
         """
         now = datetime.now(tz=pytz.UTC)
-        expiry_date = entitlement.created + timedelta(self.expiration_period_days)
+        expiry_date = entitlement.created + self.expiration_period_days
         days_until_expiry = (expiry_date - now).days
         if not entitlement.enrollment_course_run:
             return days_until_expiry
@@ -56,9 +56,9 @@ class CourseEntitlementPolicy(models.Model):
             if days_until_expiry < days_since_course_start and days_until_expiry < days_since_enrollment:
                 return days_until_expiry
             if days_since_course_start > days_since_enrollment:
-                return self.regain_period_days - days_since_course_start
+                return self.regain_period_days.days - days_since_course_start
             else:
-                return self.regain_period_days - days_since_enrollment
+                return self.regain_period_days.days - days_since_enrollment
 
     def is_entitlement_regainable(self, entitlement):
         """
@@ -88,7 +88,7 @@ class CourseEntitlementPolicy(models.Model):
 
         # This is > because a get_days_since_created of refund_period_days means that that many days have passed,
         # which should then make the entitlement no longer refundable
-        if entitlement.get_days_since_created() > self.refund_period_days:
+        if entitlement.get_days_since_created() > self.refund_period_days.days:
             return False
 
         if entitlement.enrollment_course_run:
@@ -103,7 +103,7 @@ class CourseEntitlementPolicy(models.Model):
         """
         # This is < because a get_days_since_created of expiration_period_days means that that many days have passed,
         # which should then expire the entitlement
-        return (entitlement.get_days_since_created() < self.expiration_period_days
+        return (entitlement.get_days_since_created() < self.expiration_period_days.days
                 and not entitlement.enrollment_course_run)
 
     def __unicode__(self):
