@@ -207,7 +207,6 @@ class ProgramProgressMeter(object):
         for program in programs:
             program_copy = deepcopy(program)
             completed, in_progress, not_started = [], [], []
-            user_entitlements = {}
 
             for course in program_copy['courses']:
                 try:
@@ -220,9 +219,9 @@ class ProgramProgressMeter(object):
                 elif self._is_course_enrolled(course) or entitlement:
                     # Show all currently enrolled courses and entitlements as in progress
                     if entitlement:
-                        user_entitlements[course['uuid']] = entitlement.to_dict()
+                        course['user_entitlement'] = entitlement.to_dict()
+                        course['enroll_url'] = reverse('entitlements_api:v1:enrollments', args=[str(entitlement.uuid)])
                         in_progress.append(course)
-                        # TODO: handle cases where user has entitlement but there are no available course runs
                     else:
                         course_in_progress = self._is_course_in_progress(now, course)
                         if course_in_progress:
@@ -243,7 +242,6 @@ class ProgramProgressMeter(object):
                 'completed': len(completed) if count_only else completed,
                 'in_progress': len(in_progress) if count_only else in_progress,
                 'not_started': len(not_started) if count_only else not_started,
-                'user_entitlements': len(user_entitlements.keys()) if count_only else user_entitlements,
                 'grades': grades,
             })
 

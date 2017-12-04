@@ -42,6 +42,11 @@
                     return desiredCourseRun;
                 },
 
+                isEnrolledInSession: function() {
+                    // Returns true if the user is currently enrolled in a session of the course
+                    return _.findWhere(this.context.course_runs, {is_enrolled: true}) !== undefined;
+                },
+
                 getUnselectedCourseRun: function(courseRuns) {
                     var unselectedRun = {},
                         courseRun;
@@ -198,6 +203,8 @@
                             is_enrolled: courseRun.is_enrolled,
                             is_enrollment_open: courseRun.is_enrollment_open,
                             course_key: this.context.key,
+                            user_entitlement: this.context.user_entitlement,
+                            is_unfulfilled_entitlement: this.context.user_entitlement && !courseRun.key,
                             marketing_url: courseRun.marketing_url,
                             mode_slug: courseRun.type,
                             start_date: startDateString,

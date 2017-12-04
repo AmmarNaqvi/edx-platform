@@ -45,7 +45,8 @@ defineFn(['common/js/vendor/bootstrap']);
 
                  initialize: function(options) {
                      // Set up models and reload view on change
-                     this.courseCardModel = new CourseCardModel();
+                     this.courseCardModel = options.courseCardModel || new CourseCardModel();
+                     this.enrollModel = options.enrollModel;
                      this.entitlementModel = new EntitlementModel({
                          availableSessions: this.formatDates(JSON.parse(options.availableSessions)),
                          entitlementUUID: options.entitlementUUID,
@@ -58,13 +59,17 @@ defineFn(['common/js/vendor/bootstrap']);
                      this.enrollUrl = options.enrollUrl;
                      this.courseHomeUrl = options.courseHomeUrl;
 
-                     // Grab elements from the parent card that work with this view and bind associated events
-                     this.$triggerOpenBtn = $(options.triggerOpenBtn); // Opens/closes session selection view
+                     // Grab elements from the parent card that work with this view
+                     this.$parentEl = options.$parentEl; // Containing course card
                      this.$dateDisplayField = $(options.dateDisplayField); // Displays current session dates
                      this.$enterCourseBtn = $(options.enterCourseBtn); // Button link to course home page
                      this.$courseCardMessages = $(options.courseCardMessages); // Additional session messages
                      this.$courseTitleLink = $(options.courseTitleLink); // Title link to course home page
                      this.$courseImageLink = $(options.courseImageLink); // Image link to course home page
+
+                     // Bind action elements with associated events to objects outside this view
+                     this.$triggerOpenBtn = this.$parentEl ? this.$parentEl.find(options.triggerOpenBtn) :
+                         $(options.triggerOpenBtn); // Opens/closes session selection view
                      this.$triggerOpenBtn.on('click', this.toggleSessionSelectionPanel.bind(this));
 
                      this.render(options);
@@ -129,16 +134,21 @@ defineFn(['common/js/vendor/bootstrap']);
 
                  enrollSuccess: function(data) {
                      /*
-                     Update external elements on the course card to represent the now available course session.
+                      Update external elements on the course card to represent the now available course session.
 
-                     1) Show the change session toggle button.
-                     2) Add the new session's dates to the date field on the main course card.
-                     3) Hide the 'View Course' button to the course card.
-                     */
+                      1) Show the change session toggle button.
+                      2) Add the new session's dates to the date field on the main course card.
+                      3) Hide the 'View Course' button to the course card.
+                      */
                      var successIconEl = '<span class="fa fa-check" aria-hidden="true"></span>';
 
-                     // Update the model with the new session Id;
                      this.entitlementModel.set({currentSessionId: this.currentSessionSelection});
+
+                     // With a containing backbone view, we can simply re-render the parent card
+                     if (this.$parentEl) {
+                        this.courseCardModel.updateCourseRun(this.currentSessionSelection);
+                        return;
+                     }
 
                      // Allow user to change session
                      this.$triggerOpenBtn.removeClass('hidden');
@@ -171,6 +181,12 @@ defineFn(['common/js/vendor/bootstrap']);
 
                      // Update the model with the new session Id;
                      this.entitlementModel.set({currentSessionId: this.currentSessionSelection});
+
+                     // With a containing backbone view, we can simply re-render the parent card
+                     if (this.$parentEl) {
+                        this.courseCardModel.updateCourseRun(this.currentSessionSelection);
+                        return;
+                     }
 
                      // Reset the card contents to the unenrolled state
                      this.$triggerOpenBtn.addClass('hidden');
@@ -301,9 +317,13 @@ defineFn(['common/js/vendor/bootstrap']);
                      });
                  },
 
-                 removeDialog: function(invokingElement) {
+                 removeDialog: function(el) {
                      /* Removes the Bootstrap v4 dialog modal from the update session enrollment button. */
-                     invokingElement.popover('dispose');
+                     var $el = el instanceof jQuery ? el : this.$('.enroll-btn-initial');
+                     if (!$el.popover()) {
+                         alert('WE NEED TO CHECK FOR THIS or we get an error.');
+                     }
+                     $el.popover('dispose');
                  },
 
                  showDialog: function(invokingElement) {
@@ -315,6 +335,10 @@ defineFn(['common/js/vendor/bootstrap']);
                  hideDialog: function(el, returnFocus) {
                      /* Hides the  modal without removing it from the DOM. */
                      var $el = el instanceof jQuery ? el : this.$('.enroll-btn-initial');
+                     // TODO: remove this
+                     if (!$el.popover()) {
+                         alert('WE NEED TO CHECK FOR THIS or we get an error.');
+                     }
                      $el.popover('hide');
                      if (returnFocus) {
                          $el.focus();
@@ -370,12 +394,12 @@ defineFn(['common/js/vendor/bootstrap']);
 
                      return _.map(formattedSessionData, function(session) {
                          var formattedSession = session;
-                         startDate = this.formatDate(formattedSession.session_start, dateFormat);
-                         endDate = this.formatDate(formattedSession.session_end, dateFormat);
+                         startDate = this.formatDate(formattedSession.start, dateFormat);
+                         endDate = this.formatDate(formattedSession.end, dateFormat);
                          formattedSession.enrollment_end = this.formatDate(formattedSession.enrollment_end, dateFormat);
                          formattedSession.session_dates = this.courseCardModel.formatDateString({
-                             start_date: session.session_start_advertised || startDate,
-                             end_date: session.session_start_advertised ? null : endDate,
+                             start_date: session.advertised_start || startDate,
+                             end_date: session.advertised_start ? null : endDate,
                              pacing_type: formattedSession.pacing_type
                          });
                          return formattedSession;
