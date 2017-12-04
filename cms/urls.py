@@ -153,7 +153,7 @@ urlpatterns = [
     url(r'^api/val/v0/', include('edxval.urls')),
     url(r'^api/tasks/v0/', include('user_tasks.urls')),
     url(r'^accessibility$', contentstore.views.accessibility, name='accessibility'),
-    url(r'^zendesk_proxy$', include('openedx.core.djangoapps.zendesk_proxy.urls'))
+    url(r'^zendesk_proxy$', include('openedx.core.djangoapps.zendesk_proxy.urls')),
 ]
 
 JS_INFO_DICT = {
