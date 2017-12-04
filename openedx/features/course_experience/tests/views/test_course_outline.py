@@ -111,8 +111,50 @@ class TestCourseOutlinePageWithPrerequisites(SharedModuleStoreTestCase):
     """
     Test the course outline view with prerequisites.
     """
+    @classmethod
+    def setUpClass(cls):
+        """
+        Creates a test course that can be used for non-destructive tests
+        """
+        # setUpClassAndTestData() already calls setUpClass on SharedModuleStoreTestCase
+        # pylint: disable=super-method-not-called
+        with super(TestCourseOutlineResumeCourse, cls).setUpClassAndTestData():
+            cls.course = cls.create_test_course()
 
-    def test_course_with_locked_content(cls):
+    @classmethod
+    def setUpTestData(cls):
+        """Set up and enroll our fake user in the course."""
+        cls.user = UserFactory(password=TEST_PASSWORD)
+        CourseEnrollment.enroll(cls.user, cls.course.id)
+
+    @classmethod
+    def create_test_course(cls):
+        """Creates a test course."""
+
+        course = CourseFactory.create()
+        with cls.store.bulk_operations(course.id):
+            chapter = ItemFactory.create(
+                category='chapter', parent_location=course.location)
+            prerequisite = ItemFactory.create(category='sequential', parent_location=chapter.location)
+            gated_content = ItemFactory.create(category='sequential', parent_location=chapter.location)
+            prerequisite_vertical = ItemFactory.create(category='vertical', parent_location=prerequisite.location)
+            gated_content_vertical = ItemFactory.create(category='vertical', parent_location=gated_content.location)
+        course.children = [chapter]
+        chapter.children = [prerequisite, gated_content]
+        prerequisite.children = [prerequisite_vertical]
+        gated_content.children = [gated_content_vertical]
+        if hasattr(cls, 'user'):
+            CourseEnrollment.enroll(cls.user, course.id)
+        return course
+
+    def setUp(self):
+        """
+        Set up for the tests.
+        """
+        super(TestCourseOutlineResumeCourse, self).setUp()
+        self.client.login(username=self.user.username, password=TEST_PASSWORD)
+
+    def test_course_with_locked_content(self):
         """
         Test that a sequntial/subsection with unmet prereqs correctly indicated that its content is locked
         """

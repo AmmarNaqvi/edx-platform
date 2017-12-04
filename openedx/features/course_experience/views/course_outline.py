@@ -9,7 +9,7 @@ from web_fragments.fragment import Fragment
 from courseware.courses import get_course_overview_with_access
 from openedx.core.djangoapps.plugin_api.views import EdxFragmentView
 
-from ..utils import get_course_outline_block_tree, get_all_course_blocks
+from ..utils import get_course_outline_block_tree
 from util.milestones_helpers import get_course_content_milestones
 
 
