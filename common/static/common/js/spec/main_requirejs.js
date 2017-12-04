@@ -167,8 +167,7 @@
         'common/js/spec/components/paging_footer_spec.js',
         'common/js/spec/components/progress_circle_view_spec.js',
         'common/js/spec/components/search_field_spec.js',
-        'common/js/spec/utils/edx.utils.validate_spec.js',
-        'common/js/spec/utils/utils_spec.js'
+        'common/js/spec/utils/edx.utils.validate_spec.js'
     ];
 
     for (i = 0; i < testFiles.length; i++) {

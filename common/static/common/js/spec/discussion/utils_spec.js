@@ -1,5 +1,6 @@
-/*  globals DiscussionSpecHelper, DiscussionCourseSettings, NewPostView, DiscussionUtil,
-    DiscussionThreadView, DiscussionViewSpecHelper, Thread, Discussion,
+/*  globals
+    DiscussionSpecHelper, DiscussionCourseSettings, NewPostView, DiscussionUtil,
+    DiscussionThreadView, DiscussionViewSpecHelper, Thread, Discussion
 */
 (function() {
     'use strict';
