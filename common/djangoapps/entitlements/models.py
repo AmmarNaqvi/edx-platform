@@ -179,10 +179,11 @@ class CourseEntitlement(TimeStampedModel):
         Updates the expired_at attribute if it is not set AND it is expired according to the entitlement's policy,
         OR if the policy can no longer be regained AND the policy has been redeemed
         """
-        if (not self.expired_at and self.policy.get_days_until_expiration(self) < 0
-                or (self.enrollment_course_run and not self.is_entitlement_regainable())):
-            self.expired_at = datetime.utcnow()
-            self.save()
+        if not self.expired_at:
+            if (self.policy.get_days_until_expiration(self) < 0 or
+                    (self.enrollment_course_run and not self.is_entitlement_regainable())):
+                    self.expired_at = datetime.utcnow()
+                    self.save()
 
     def get_days_until_expiration(self):
         """
