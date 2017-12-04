@@ -50,7 +50,6 @@ defineFn(['common/js/vendor/bootstrap']);
                          availableSessions: this.formatDates(JSON.parse(options.availableSessions)),
                          entitlementUUID: options.entitlementUUID,
                          currentSessionId: options.currentSessionId,
-                         userId: options.userId,
                          courseName: options.courseName
                      });
                      this.listenTo(this.entitlementModel, 'change', this.render);

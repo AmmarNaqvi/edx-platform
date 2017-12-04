@@ -19,6 +19,7 @@ from pytz import utc
 from requests.exceptions import ConnectionError, Timeout
 
 from course_modes.models import CourseMode
+from entitlements.models import CourseEntitlement
 from lms.djangoapps.certificates import api as certificate_api
 from lms.djangoapps.commerce.utils import EcommerceService
 from lms.djangoapps.courseware.access import has_access
@@ -206,17 +207,29 @@ class ProgramProgressMeter(object):
         for program in programs:
             program_copy = deepcopy(program)
             completed, in_progress, not_started = [], [], []
+            user_entitlements = {}
 
             for course in program_copy['courses']:
+                try:
+                    entitlement = CourseEntitlement.objects.get(user=self.user, course_uuid=course['uuid'])
+                except CourseEntitlement.DoesNotExist:
+                    entitlement = None
+
                 if self._is_course_complete(course):
                     completed.append(course)
-                elif self._is_course_enrolled(course):
-                    course_in_progress = self._is_course_in_progress(now, course)
-                    if course_in_progress:
+                elif self._is_course_enrolled(course) or entitlement:
+                    # Show all currently enrolled courses and entitlements as in progress
+                    if entitlement:
+                        user_entitlements[course['uuid']] = entitlement.to_dict()
                         in_progress.append(course)
+                        # TODO: handle cases where user has entitlement but there are no available course runs
                     else:
-                        course['expired'] = not course_in_progress
-                        not_started.append(course)
+                        course_in_progress = self._is_course_in_progress(now, course)
+                        if course_in_progress:
+                            in_progress.append(course)
+                        else:
+                            course['expired'] = not course_in_progress
+                            not_started.append(course)
                 else:
                     not_started.append(course)
 
@@ -230,6 +243,7 @@ class ProgramProgressMeter(object):
                 'completed': len(completed) if count_only else completed,
                 'in_progress': len(in_progress) if count_only else in_progress,
                 'not_started': len(not_started) if count_only else not_started,
+                'user_entitlements': len(user_entitlements.keys()) if count_only else user_entitlements,
                 'grades': grades,
             })
 

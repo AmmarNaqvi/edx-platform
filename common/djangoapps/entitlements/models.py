@@ -25,6 +25,14 @@ class CourseEntitlement(TimeStampedModel):
     )
     order_number = models.CharField(max_length=128, null=True)
 
+    def to_dict(self):
+        """ Convert entitlement to dictionary representation. """
+        return {
+            'uuid': str(self.uuid),
+            'course_uuid': str(self.course_uuid),
+            'expired_at': self.expired_at
+        }
+
     @classmethod
     def get_active_user_course_entitlements(cls, user, course_uuid):
         """
