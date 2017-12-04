@@ -261,7 +261,7 @@ def export_olx(self, user_id, course_key_string, language):
         LOGGER.exception(u'Error exporting course %s', courselike_key, exc_info=True)
         if self.status.state != UserTaskStatus.FAILED:
             self.status.fail({'raw_error_msg': text_type(exception)})
-        return
+        raise
 
 
 def create_export_tarball(course_module, course_key, context, status=None):
@@ -275,6 +275,7 @@ def create_export_tarball(course_module, course_key, context, status=None):
     root_dir = path(mkdtemp())
 
     try:
+        1 / 0 # this should raise an exception
         if isinstance(course_key, LibraryLocator):
             export_library_to_xml(modulestore(), contentstore(), course_key, root_dir, name)
         else:
