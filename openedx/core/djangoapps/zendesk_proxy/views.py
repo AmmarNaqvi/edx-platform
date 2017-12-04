@@ -1,15 +1,31 @@
 """
 Define request handlers used by the zendesk_proxy djangoapp
 """
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.throttling import UserRateThrottle
+from rest_framework.views import APIView
 
-from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+ZENDESK_REQUESTS_PER_HOUR = 15
 
-@csrf_exempt  # TODO: remove this before merge/deploy, it's only here for ease of manual testing during development
-@require_POST
-def zendesk_passthrough(_request):
+
+class ZendeskProxyThrottle(UserRateThrottle):
     """
-    This is just a skeleton for now to make sure I get django routing set up properly.
+    Custom throttle rates for this particular endpoint's use case.
     """
-    return HttpResponse(status=200)
+    THROTTLE_RATES = {
+        'user': '{}/hour'.format(ZENDESK_REQUESTS_PER_HOUR),
+    }
+
+class ZendeskPassthroughView(APIView):
+    """
+    TODO better docstring
+    """
+
+    throttle_classes = ZendeskProxyThrottle,
+
+    def post(self, _request):
+        """
+        TODO real docstring here
+        """
+        return Response(status=status.HTTP_200_OK)
