@@ -151,6 +151,10 @@ REGISTER_USER = Signal(providing_args=["user", "registration"])
 # Disable this warning because it doesn't make sense to completely refactor tests to appease Pylint
 # pylint: disable=logging-format-interpolation
 
+REGISTRATION_DISPLAY_FIELD_NAMES_FOR_THIRD_PARTY_AUTH = [
+    'terms_of_service', 'honor_code', 'email', 'name'
+]
+
 
 def csrf_token(context):
     """A csrf token that can be included in a form."""
@@ -2103,8 +2107,7 @@ def create_account_with_params(request, params):
 
 def _apply_third_party_auth_overrides(request, extra_fields):
     """
-    Modify the extra_fields and required attributes of the corresponding fields if the user has
-    authenticated with a third-party provider.
+    Modify the required attribute of the provided extra_fields according to the learners third party auth provider.
     """
     updated_fields = deepcopy(extra_fields)
 
@@ -2113,11 +2116,11 @@ def _apply_third_party_auth_overrides(request, extra_fields):
         if running_pipeline:
             current_provider = third_party_auth.provider.Registry.get_from_pipeline(running_pipeline)
             # Make input fields read-only for fields passed in via SSO callback data.
-            if current_provider.sync_learner_profile_data:
-                display_field_names = ['terms_of_service', 'honor_code', 'email', 'name']
+            if current_provider and current_provider.sync_learner_profile_data:
 
                 for field_name, field_value in extra_fields.items():
-                    if field_name not in display_field_names and field_value == 'required':
+                    if field_name not in REGISTRATION_DISPLAY_FIELD_NAMES_FOR_THIRD_PARTY_AUTH and \
+                            field_value == 'required':
                         # Make hidden fields optional
                         updated_fields[field_name] = 'optional'
 

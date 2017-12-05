@@ -78,7 +78,7 @@ def login_and_registration_form(request, initial_mode="login"):
     if running_pipeline and initial_mode == 'register':
         current_provider = third_party_auth.provider.Registry.get_from_pipeline(running_pipeline)
         enterprise_customer = enterprise_customer_for_request(request)
-        if enterprise_customer and current_provider.sync_learner_profile_data:
+        if enterprise_customer and current_provider and current_provider.sync_learner_profile_data:
             user_details = running_pipeline['kwargs']['details']
 
             try:
